@@ -18,10 +18,11 @@ async def maybe_await(func, *args):
 
 
 async def run_loop_until(error,
+                         info,
                          state=lambda: None, cancel=lambda: None):
     try:
         while True:
-            state, cancel = await loop(state, error)
+            state, cancel = await loop(state, error, info)
     except Exception as e:
         await maybe_await(cancel)
         error(e)
@@ -42,7 +43,7 @@ def loop_start():
     if loop_is_running():
         raise Exception("Loop is already running!")
     async_task = asyncio.ensure_future(
-        run_loop_until(report_error))
+        run_loop_until(error_set, info_set))
     async_task.add_done_callback(done_callback)
     async_loop.ensure_async_loop()
     bpy.context.window_manager.blend_loop_is_running = True
@@ -61,6 +62,30 @@ def done_callback(task):
     print("Blend Loop Closed.")
 
 
-def report_error(error):
-    bpy.context.window_manager.blend_loop_error_message = (
-        str(error))
+# def report_error(error):
+#     bpy.context.window_manager.blend_loop_error_message = (
+#         str(error))
+
+
+def error_set(error):
+    bpy.context.window_manager.blend_loop_error = (str(error))
+
+
+def error_get():
+    return bpy.context.window_manager.blend_loop_error
+
+
+def error_clear():
+    error_set("")
+
+
+def info_set(info):
+    bpy.context.window_manager.blend_loop_info = str(info)
+
+
+def info_get():
+    return bpy.context.window_manager.blend_loop_info
+
+
+def info_clear():
+    info_set("")

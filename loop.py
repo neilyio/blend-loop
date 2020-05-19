@@ -20,7 +20,7 @@ def replace_main(contents, new_name="PLACEHOLDER_NAME"):
 
 
 def randomize_name(name):
-    return ("neil_bl_loop_"
+    return ("bl_loop_"
             + ''.join(random.choice(string.ascii_uppercase + string.digits)
                       for x in range(10))
             + "_" + name)
@@ -82,15 +82,18 @@ async def poll_for_file_path(redis):
     return response.decode('utf-8') if response else ''
 
 
-async def loop(state, error):
+async def loop(state, error, info):
     conn, cancel = await ensure_server(state())
     file_path = await poll_for_file_path(conn)
+    file_name = Path(file_path).name
     if file_path:
         try:
             run_script(file_path)
+            info(f"Ran '{file_name}'.")
         except Exception as e:
             error(e)
             print('BLEND LOOP ERROR: ')
             traceback.print_exc()
+            print("\n\n")
     await asyncio.sleep(0.1)
     return (lambda: conn, cancel)

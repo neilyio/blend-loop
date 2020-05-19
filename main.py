@@ -1,7 +1,9 @@
-import sys
 import bpy
+import sys
 sys.path.append("c:/Users/neilh/Documents/GitHub/blend-loop")
-from runner import loop_is_running, loop_start, loop_stop
+from runner import (
+    loop_is_running, loop_start, loop_stop,
+    error_get, error_clear, info_get, info_clear)
 
 
 class BlendLoopErrorSubscriber(bpy.types.Operator):
@@ -18,12 +20,13 @@ class BlendLoopErrorSubscriber(bpy.types.Operator):
             bpy.context.window_manager.event_timer_remove(self._timer)
 
     def modal(self, context, event):
-        wm = context.window_manager
-        err = wm.blend_loop_error_message
         if event.type == 'TIMER':
-            if err:
-                self.report({'ERROR'}, "BLEND LOOP: " + str(err))
-                wm.blend_loop_error_message = ""
+            if info_get():
+                self.report({'INFO'}, "BLEND LOOP: " + str(info_get()))
+                info_clear()
+            if error_get():
+                self.report({'ERROR'}, "BLEND LOOP: " + str(error_get()))
+                error_clear()
         return {'PASS_THROUGH'}
 
     def execute(self, context):
@@ -67,7 +70,8 @@ class BlendLoopPanel(bpy.types.Panel):
 def register():
     wm = bpy.types.WindowManager
     wm.blend_loop_is_running = bpy.props.BoolProperty(default=False)
-    wm.blend_loop_error_message = bpy.props.StringProperty(default="")
+    wm.blend_loop_error = bpy.props.StringProperty(default="")
+    wm.blend_loop_info = bpy.props.StringProperty(default="")
     bpy.utils.register_class(BlendLoopPanel)
     bpy.utils.register_class(BlendLoopToggle)
     bpy.utils.register_class(BlendLoopErrorSubscriber)
