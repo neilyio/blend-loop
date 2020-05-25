@@ -62,11 +62,6 @@ def done_callback(task):
     print("Blend Loop Closed.")
 
 
-# def report_error(error):
-#     bpy.context.window_manager.blend_loop_error_message = (
-#         str(error))
-
-
 def error_set(error):
     bpy.context.window_manager.blend_loop_error = (str(error))
 
