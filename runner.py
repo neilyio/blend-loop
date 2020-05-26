@@ -10,6 +10,14 @@ def state(func):
     def state_wrapper(*args, **kwargs):
         state = bpy.context.window_manager.blend_loop_state
         return func(state, *args, **kwargs)
+
+    @wraps(func)
+    async def async_state_wrapper(*args, **kwargs):
+        state = bpy.context.window_manager.blend_loop_state
+        return await func(state, *args, **kwargs)
+
+    if asyncio.iscoroutinefunction(func):
+        return async_state_wrapper
     return state_wrapper
 
 
@@ -24,15 +32,22 @@ async def maybe_await(func, *args):
         func(*args)
 
 
-async def run_loop_until(error,
-                         info,
-                         state=lambda: None, cancel=lambda: None):
+def done_callback(task):
+    print("Blend Loop Closed.")
+
+
+async def loop_container(state, loop_state):
+    return await loop(loop_state, error_set, info_set)
+
+
+@state
+async def run_loop(state, loop_state=lambda: None, cancel=lambda: None):
     try:
         while True:
-            state, cancel = await loop(state, error, info)
+            loop_state, cancel = await loop_container(state, loop_state)
     except Exception as e:
         await maybe_await(cancel)
-        error(e)
+        error_set(e)
         raise
 
 
@@ -49,8 +64,7 @@ def loop_is_running(state):
 def loop_start(state):
     if loop_is_running():
         raise Exception("Loop is already running!")
-    async_task = asyncio.ensure_future(
-        run_loop_until(error_set, info_set))
+    async_task = asyncio.ensure_future(run_loop())
     async_task.add_done_callback(done_callback)
     async_loop.ensure_async_loop()
     state.is_running = True
@@ -63,10 +77,6 @@ def loop_stop(state):
         raise Exception("Not running loop!")
     state.is_running = False
     state.task.cancel()
-
-
-def done_callback(task):
-    print("Blend Loop Closed.")
 
 
 @state
