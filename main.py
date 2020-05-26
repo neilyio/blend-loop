@@ -41,13 +41,10 @@ class BlendLoopToggle(bpy.types.Operator):
     bl_label = "Start Blend Loop"
 
     def execute(self, context):
-        state = bpy.context.window_manager.blend_loop_state
-        print('before', state.is_running)
         if loop_is_running():
-            loop_stop(state)
+            loop_stop()
         else:
-            loop_start(state)
-        print('after', state.is_running)
+            loop_start()
         return {'FINISHED'}
 
     def invoke(self, context, event):

@@ -1,10 +1,18 @@
 import asyncio
 import bpy
+from functools import wraps
 from blender_cloud import async_loop
 from loop import loop
-from state import BlendLoopState
 
 __task = None
+
+
+def state(func):
+    @wraps(func)
+    def state_wrapper(*args, **kwargs):
+        state = bpy.context.window_manager.blend_loop_state
+        return func(state, *args, **kwargs)
+    return state_wrapper
 
 
 async def maybe_await(func, *args):
@@ -39,6 +47,7 @@ def loop_is_running():
     return True
 
 
+@state
 def loop_start(state):
     global __task
     if loop_is_running():
@@ -51,6 +60,7 @@ def loop_start(state):
     __task = async_task
 
 
+@state
 def loop_stop(state):
     global __task
     if not loop_is_running():
@@ -63,24 +73,28 @@ def done_callback(task):
     print("Blend Loop Closed.")
 
 
-def error_set(error):
-    bpy.context.window_manager.blend_loop_state.error = str(error)
+@state
+def error_set(state, error):
+    state.error = str(error)
 
 
-def error_get():
-    return bpy.context.window_manager.blend_loop_state.error
+@state
+def error_get(state):
+    return state.error
 
 
 def error_clear():
     error_set("")
 
 
-def info_set(info):
-    bpy.context.window_manager.blend_loop_state.info = str(info)
+@state
+def info_set(state, info):
+    state.info = str(info)
 
 
-def info_get():
-    return bpy.context.window_manager.blend_loop_state.info
+@state
+def info_get(state):
+    return state.info
 
 
 def info_clear():
