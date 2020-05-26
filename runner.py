@@ -4,8 +4,6 @@ from functools import wraps
 from blender_cloud import async_loop
 from loop import loop
 
-__task = None
-
 
 def state(func):
     @wraps(func)
@@ -38,18 +36,17 @@ async def run_loop_until(error,
         raise
 
 
-def loop_is_running():
-    global __task
-    if not __task:
+@state
+def loop_is_running(state):
+    if not state.task:
         return False
-    if __task.cancelled() or __task.done():
+    if state.task.cancelled() or state.task.done():
         return False
     return True
 
 
 @state
 def loop_start(state):
-    global __task
     if loop_is_running():
         raise Exception("Loop is already running!")
     async_task = asyncio.ensure_future(
@@ -57,16 +54,15 @@ def loop_start(state):
     async_task.add_done_callback(done_callback)
     async_loop.ensure_async_loop()
     state.is_running = True
-    __task = async_task
+    state.task = async_task
 
 
 @state
 def loop_stop(state):
-    global __task
     if not loop_is_running():
         raise Exception("Not running loop!")
     state.is_running = False
-    __task.cancel()
+    state.task.cancel()
 
 
 def done_callback(task):

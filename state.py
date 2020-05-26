@@ -6,6 +6,7 @@ class BlendLoopState():
     # This would cause it to report endlessly and crash Blender.
     def __init__(self, state):
         self._state = state
+        self.__task = None
         initial = [('is_running', 'b', False),
                    ('info', 's', ""),
                    ('error', 's', "")]
@@ -31,6 +32,14 @@ class BlendLoopState():
                 else:
                     raise Exception(
                         f'Received invalid _type parameter: {_type}')
+
+    @property
+    def task(self):
+        return self.__task
+
+    @task.setter
+    def task(self, value):
+        self.__task = value
 
     @property
     def is_running(self):
