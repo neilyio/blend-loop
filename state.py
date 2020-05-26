@@ -7,6 +7,7 @@ class BlendLoopState():
     def __init__(self, state):
         self._state = state
         self.__task = None
+        self.__subscriber = None
         initial = [('is_running', 'b', False),
                    ('info', 's', ""),
                    ('error', 's', "")]
@@ -32,6 +33,14 @@ class BlendLoopState():
                 else:
                     raise Exception(
                         f'Received invalid _type parameter: {_type}')
+
+    @property
+    def subscriber(self):
+        return self.__subscriber
+
+    @subscriber.setter
+    def subscriber(self, value):
+        self.__subscriber = value
 
     @property
     def task(self):

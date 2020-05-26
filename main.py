@@ -8,9 +8,9 @@ from runner import (
     error_get, error_clear, info_get, info_clear)
 
 
-class BlendLoopErrorSubscriber(bpy.types.Operator):
-    bl_idname = "wm.blend_loop_error_subscriber"
-    bl_label = "Report Blend Loop error"
+class BlendLoopMessageSubscriber(bpy.types.Operator):
+    bl_idname = "wm.blend_loop_message_subscriber"
+    bl_label = "Report Blend Loop messages"
     _timer = None
 
     def __init__(self):
@@ -81,12 +81,13 @@ def register():
     bpy.utils.register_class(BlendLoopStateProperty)
     bpy.utils.register_class(BlendLoopPanel)
     bpy.utils.register_class(BlendLoopToggle)
-    bpy.utils.register_class(BlendLoopErrorSubscriber)
+    bpy.utils.register_class(BlendLoopMessageSubscriber)
     wm.blend_loop_state_property = bpy.props.CollectionProperty(
         type=BlendLoopStateProperty)
     wm.blend_loop_state = BlendLoopState(
         bpy.context.window_manager.blend_loop_state_property)
-    bpy.ops.wm.blend_loop_error_subscriber()
+    wm.blend_loop_state.subscriber = (
+        bpy.ops.wm.blend_loop_message_subscriber())
 
 
 def unregister():
@@ -95,7 +96,7 @@ def unregister():
     bpy.utils.unregister_class(BlendLoopState)
     bpy.utils.unregister_class(BlendLoopPanel)
     bpy.utils.unregister_class(BlendLoopToggle)
-    bpy.utils.unregister_class(BlendLoopErrorSubscriber)
+    bpy.utils.unregister_class(BlendLoopMessageSubscriber)
 
 
 if __name__ == '__main__':
