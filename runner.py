@@ -2,6 +2,7 @@ import asyncio
 import bpy
 from blender_cloud import async_loop
 from loop import loop
+from state import BlendLoopState
 
 __task = None
 
@@ -38,7 +39,7 @@ def loop_is_running():
     return True
 
 
-def loop_start():
+def loop_start(state):
     global __task
     if loop_is_running():
         raise Exception("Loop is already running!")
@@ -46,15 +47,15 @@ def loop_start():
         run_loop_until(error_set, info_set))
     async_task.add_done_callback(done_callback)
     async_loop.ensure_async_loop()
-    bpy.context.window_manager.blend_loop_is_running = True
+    state.is_running = True
     __task = async_task
 
 
-def loop_stop():
+def loop_stop(state):
     global __task
     if not loop_is_running():
         raise Exception("Not running loop!")
-    bpy.context.window_manager.blend_loop_is_running = False
+    state.is_running = False
     __task.cancel()
 
 
@@ -63,11 +64,11 @@ def done_callback(task):
 
 
 def error_set(error):
-    bpy.context.window_manager.blend_loop_error = (str(error))
+    bpy.context.window_manager.blend_loop_state.error = str(error)
 
 
 def error_get():
-    return bpy.context.window_manager.blend_loop_error
+    return bpy.context.window_manager.blend_loop_state.error
 
 
 def error_clear():
@@ -75,11 +76,11 @@ def error_clear():
 
 
 def info_set(info):
-    bpy.context.window_manager.blend_loop_info = str(info)
+    bpy.context.window_manager.blend_loop_state.info = str(info)
 
 
 def info_get():
-    return bpy.context.window_manager.blend_loop_info
+    return bpy.context.window_manager.blend_loop_state.info
 
 
 def info_clear():

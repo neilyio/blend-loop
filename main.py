@@ -1,6 +1,8 @@
 import bpy
 import sys
+from pathlib import Path
 sys.path.append("c:/Users/neilh/Documents/GitHub/blend-loop")
+from state import BlendLoopState
 from runner import (
     loop_is_running, loop_start, loop_stop,
     error_get, error_clear, info_get, info_clear)
@@ -39,10 +41,13 @@ class BlendLoopToggle(bpy.types.Operator):
     bl_label = "Start Blend Loop"
 
     def execute(self, context):
+        state = bpy.context.window_manager.blend_loop_state
+        print('before', state.is_running)
         if loop_is_running():
-            loop_stop()
+            loop_stop(state)
         else:
-            loop_start()
+            loop_start(state)
+        print('after', state.is_running)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -67,20 +72,30 @@ class BlendLoopPanel(bpy.types.Panel):
                      icon='PREVIEW_RANGE')
 
 
+class BlendLoopStateProperty(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(default="")
+    b: bpy.props.BoolProperty(default=False)
+    i: bpy.props.IntProperty(default=0)
+    s: bpy.props.StringProperty(default="")
+
+
 def register():
     wm = bpy.types.WindowManager
-    wm.blend_loop_is_running = bpy.props.BoolProperty(default=False)
-    wm.blend_loop_error = bpy.props.StringProperty(default="")
-    wm.blend_loop_info = bpy.props.StringProperty(default="")
+    bpy.utils.register_class(BlendLoopStateProperty)
     bpy.utils.register_class(BlendLoopPanel)
     bpy.utils.register_class(BlendLoopToggle)
     bpy.utils.register_class(BlendLoopErrorSubscriber)
+    wm.blend_loop_state_property = bpy.props.CollectionProperty(
+        type=BlendLoopStateProperty)
+    wm.blend_loop_state = BlendLoopState(
+        bpy.context.window_manager.blend_loop_state_property)
     bpy.ops.wm.blend_loop_error_subscriber()
 
 
 def unregister():
-    del bpy.types.WindowManager.blend_loop_is_running
-    del bpy.types.WindowManager.blend_loop_error_message
+    del bpy.types.WindowManager.blend_loop_state
+    del bpy.types.WindowManager.blend_loop_state_property
+    bpy.utils.unregister_class(BlendLoopState)
     bpy.utils.unregister_class(BlendLoopPanel)
     bpy.utils.unregister_class(BlendLoopToggle)
     bpy.utils.unregister_class(BlendLoopErrorSubscriber)

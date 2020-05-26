@@ -5,14 +5,15 @@ from pathlib import Path
 import importlib
 from config import BL_SCRIPT_FOLDER, REDIS_CODE_KEY
 import asyncio
+import aiofiles
 import aioredis
 from functools import partial
 import traceback
 
 
-def file_string(file_path):
-    with open(file_path) as f:
-        return f.read()
+async def file_string(file_path):
+    async with aiofiles.open(file_path) as f:
+        return await f.read()
 
 
 def replace_main(contents, new_name="PLACEHOLDER_NAME"):
@@ -26,18 +27,29 @@ def randomize_name(name):
             + "_" + name)
 
 
-def copy_contents(target_path, source_path):
-    with open(target_path, 'w') as f:
-        f.write(file_string(source_path))
+async def copy_contents(target_path, source_path):
+    async with aiofiles.open(target_path, 'w') as f:
+        await f.write(await file_string(source_path))
 
 
-def run_script(file_path):
+async def copy_folder(target_path, source_path):
+    target = Path(target_path)
+    source = Path(source_path)
+    target.mkdir(exist_ok=True)
+    for child in Path(source).iterdir():
+        if child.is_dir():
+            await copy_folder(target.joinpath(child.name), child)
+        else:
+            await copy_contents(target.joinpath(child.name), child)
+
+
+async def run_script(file_path):
     file_stem = Path(file_path).stem
     new_name = randomize_name(file_stem)
     new_script_path = Path(BL_SCRIPT_FOLDER).joinpath(f"{new_name}.py")
     new_cache_folder = new_script_path.parent.joinpath('__pycache__')
     try:
-        copy_contents(new_script_path, file_path)
+        await copy_contents(new_script_path, file_path)
         bpy.utils.load_scripts(refresh_scripts=True)
         importlib.import_module(new_name)
     finally:
@@ -88,7 +100,7 @@ async def loop(state, error, info):
     file_name = Path(file_path).name
     if file_path:
         try:
-            run_script(file_path)
+            await run_script(file_path)
             info(f"Ran '{file_name}'.")
         except Exception as e:
             error(e)
