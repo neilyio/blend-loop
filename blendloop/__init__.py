@@ -32,7 +32,7 @@ import sys
 from pathlib import Path
 from bpy_extras.io_utils import ImportHelper
 sys.path.append("c:/Users/neilh/Documents/GitHub/blend-loop")
-from .state import BlendLoopState
+from .state import BlendLoopState, BlendLoopStateProperty
 from .runner import (
     loop_is_running, loop_start, loop_stop,
     error_get, error_clear, info_get, info_clear,
@@ -120,13 +120,6 @@ class BlendLoopPanel(bpy.types.Panel):
             row.label(text=directory_get())
 
 
-class BlendLoopStateProperty(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty(default="")
-    b: bpy.props.BoolProperty(default=False)
-    i: bpy.props.IntProperty(default=0)
-    s: bpy.props.StringProperty(default="")
-
-
 class BlendLoopDirectoryLoad(bpy.types.Operator):
     bl_idname = "wm.blend_loop_directory_load"
     bl_label = "Load Directory Path"
@@ -163,13 +156,13 @@ class BlendLoopDirectoryClear(bpy.types.Operator):
 
 
 def register():
-    wm = bpy.types.WindowManager
     bpy.utils.register_class(BlendLoopDirectoryLoad)
     bpy.utils.register_class(BlendLoopDirectoryClear)
     bpy.utils.register_class(BlendLoopStateProperty)
     bpy.utils.register_class(BlendLoopPanel)
     bpy.utils.register_class(BlendLoopToggle)
     bpy.utils.register_class(BlendLoopMessageSubscriber)
+    wm = bpy.types.WindowManager
     wm.blend_loop_state_property = bpy.props.CollectionProperty(
         type=BlendLoopStateProperty)
     wm.blend_loop_state = BlendLoopState(

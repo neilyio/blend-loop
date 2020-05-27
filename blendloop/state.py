@@ -1,3 +1,13 @@
+import bpy
+
+
+class BlendLoopStateProperty(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(default="")
+    b: bpy.props.BoolProperty(default=False)
+    i: bpy.props.IntProperty(default=0)
+    s: bpy.props.StringProperty(default="")
+
+
 class BlendLoopState():
     # Make sure to set the initial state correctly here.
     # Otherwise, functions that depend on state may use wrong initial state.
@@ -21,6 +31,7 @@ class BlendLoopState():
         for item in self._state:
             if item.name == prop:
                 return getattr(item, _type)
+        raise Exception(f'Invalid field in state: {prop}')
 
     def __set_property(self,  prop, _type, value):
         for item in self._state:
@@ -34,6 +45,7 @@ class BlendLoopState():
                 else:
                     raise Exception(
                         f'Received invalid _type parameter: {_type}')
+        raise Exception(f'Invalid field in state: {prop}')
 
     @property
     def subscriber(self):
