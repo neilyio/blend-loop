@@ -116,10 +116,13 @@ async def poll_for_signal(redis):
 
 async def loop(state, error, info, directory_path):
     conn, cancel = await ensure_server(state())
-    if await poll_for_signal(conn) and Path(directory_path).exists():
+    if await poll_for_signal(conn):
         try:
             # Will import the directory path
             # even if file_path is not in directory.
+            if not (Path(directory_path).exists() and len(directory_path) > 0):
+                raise FileNotFoundError(
+                    f'Directory path is not valid: "{directory_path}"')
             await run_script(directory_path)
             info(f"Ran '{Path(directory_path).stem}'")
         except Exception as e:
