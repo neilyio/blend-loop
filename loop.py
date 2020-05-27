@@ -3,6 +3,7 @@ import string
 import random
 from pathlib import Path
 import importlib
+from contextlib import asynccontextmanager
 from config import BL_SCRIPT_FOLDER, REDIS_CODE_KEY
 import asyncio
 import aiofiles
@@ -43,20 +44,39 @@ async def copy_folder(target_path, source_path):
             await copy_contents(target.joinpath(child.name), child)
 
 
-async def run_script(file_path):
-    file_stem = Path(file_path).stem
-    new_name = randomize_name(file_stem)
-    new_script_path = Path(BL_SCRIPT_FOLDER).joinpath(f"{new_name}.py")
-    new_cache_folder = new_script_path.parent.joinpath('__pycache__')
-    try:
-        await copy_contents(new_script_path, file_path)
+def delete_folder(target_path):
+    # Make sure we're somewhere in the Blender modules folder.
+    assert target_path.relative_to(BL_SCRIPT_FOLDER)
+    target = Path(target_path)
+    for child in target.iterdir():
+        if child.is_dir():
+            delete_folder(child)
+        else:
+            Path.unlink(child)
+    Path.rmdir(target)
+
+
+@asynccontextmanager
+async def temp_copy(target_path, source_path):
+    target = Path(target_path)
+    source = Path(source_path)
+    if source.is_dir():
+        await copy_folder(target, source)
+        yield
+        delete_folder(target)
+    else:
+        await copy_contents(target, source)
+        yield
+        Path.unlink(target)
+
+
+async def run_script(path):
+    name = Path(path).name
+    target_path = Path(BL_SCRIPT_FOLDER).joinpath(randomize_name(name))
+    print("TARGET:", target_path)
+    async with temp_copy(target_path, path):
         bpy.utils.load_scripts(refresh_scripts=True)
-        importlib.import_module(new_name)
-    finally:
-        Path.unlink(new_script_path)
-        for f in new_cache_folder.glob(f'{new_name}*'):
-            Path.unlink(f)
-        pass
+        importlib.import_module(target_path.stem)
 
 
 async def run_process(process, *args):
@@ -89,19 +109,19 @@ async def ensure_server(redis):
         raise Exception("Could not connect to Blend Loop server.")
 
 
-async def poll_for_file_path(redis):
+async def poll_for_signal(redis):
     response = await redis.getset(REDIS_CODE_KEY, '')
     return response.decode('utf-8') if response else ''
 
 
-async def loop(state, error, info):
+async def loop(state, error, info, directory_path):
     conn, cancel = await ensure_server(state())
-    file_path = await poll_for_file_path(conn)
-    file_name = Path(file_path).name
-    if file_path:
+    if await poll_for_signal(conn) and Path(directory_path).exists():
         try:
-            await run_script(file_path)
-            info(f"Ran '{file_name}'.")
+            # Will import the directory path
+            # even if file_path is not in directory.
+            await run_script(directory_path)
+            info(f"Ran '{Path(directory_path).stem}'")
         except Exception as e:
             error(e)
             print('BLEND LOOP ERROR: ')

@@ -37,7 +37,8 @@ def done_callback(task):
 
 
 async def loop_container(state, loop_state):
-    return await loop(loop_state, error_set, info_set)
+    return await loop(loop_state, error_set, info_set,
+                      directory_get())
 
 
 @state
@@ -105,3 +106,13 @@ def info_get(state):
 
 def info_clear():
     info_set("")
+
+
+@state
+def directory_get(state):
+    return state.directory
+
+
+@state
+def directory_set(state, path):
+    state.directory = str(path)

@@ -10,7 +10,8 @@ class BlendLoopState():
         self.__subscriber = None
         initial = [('is_running', 'b', False),
                    ('info', 's', ""),
-                   ('error', 's', "")]
+                   ('error', 's', ""),
+                   ('directory', 's', "")]
         for name, _type, value in initial:
             st_item = self._state.add()
             st_item.name = name
@@ -73,3 +74,11 @@ class BlendLoopState():
     @error.setter
     def error(self, value):
         return self.__set_property('error', 's', value)
+
+    @property
+    def directory(self):
+        return self.__get_property('directory', 's')
+
+    @directory.setter
+    def directory(self, value):
+        return self.__set_property('directory', 's', value)
