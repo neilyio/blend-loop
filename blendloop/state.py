@@ -1,51 +1,22 @@
-import bpy
-
-
-class BlendLoopStateProperty(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty(default="")
-    b: bpy.props.BoolProperty(default=False)
-    i: bpy.props.IntProperty(default=0)
-    s: bpy.props.StringProperty(default="")
-
-
 class BlendLoopState():
     # Make sure to set the initial state correctly here.
     # Otherwise, functions that depend on state may use wrong initial state.
     # For example, your error reporting modal might accidently take
     # a boolean field from the state instead of an empty string.
     # This would cause it to report endlessly and crash Blender.
-    def __init__(self, state):
-        self._state = state
+    def __init__(self):
+        self._state = {'is_running': False,
+                       'info': "",
+                       'error': "",
+                       'directory': ""}
         self.__task = None
         self.__subscriber = None
-        initial = [('is_running', 'b', False),
-                   ('info', 's', ""),
-                   ('error', 's', ""),
-                   ('directory', 's', "")]
-        for name, _type, value in initial:
-            st_item = self._state.add()
-            st_item.name = name
-            self.__set_property(name, _type, value)
 
     def __get_property(self, prop, _type):
-        for item in self._state:
-            if item.name == prop:
-                return getattr(item, _type)
-        raise Exception(f'Invalid field in state: {prop}')
+        return self._state[prop]
 
     def __set_property(self,  prop, _type, value):
-        for item in self._state:
-            if item.name == prop:
-                if _type == 'b':
-                    item.b = value
-                elif _type == 'i':
-                    item.i = value
-                elif _type == 's':
-                    item.s = value
-                else:
-                    raise Exception(
-                        f'Received invalid _type parameter: {_type}')
-        raise Exception(f'Invalid field in state: {prop}')
+        self._state = {**self._state, prop: value}
 
     @property
     def subscriber(self):

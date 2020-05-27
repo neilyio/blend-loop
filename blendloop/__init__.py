@@ -32,7 +32,7 @@ import sys
 from pathlib import Path
 from bpy_extras.io_utils import ImportHelper
 sys.path.append("c:/Users/neilh/Documents/GitHub/blend-loop")
-from .state import BlendLoopState, BlendLoopStateProperty
+from .state import BlendLoopState
 from .runner import (
     loop_is_running, loop_start, loop_stop,
     error_get, error_clear, info_get, info_clear,
@@ -158,23 +158,16 @@ class BlendLoopDirectoryClear(bpy.types.Operator):
 def register():
     bpy.utils.register_class(BlendLoopDirectoryLoad)
     bpy.utils.register_class(BlendLoopDirectoryClear)
-    bpy.utils.register_class(BlendLoopStateProperty)
     bpy.utils.register_class(BlendLoopPanel)
     bpy.utils.register_class(BlendLoopToggle)
     bpy.utils.register_class(BlendLoopMessageSubscriber)
-    wm = bpy.types.WindowManager
-    wm.blend_loop_state_property = bpy.props.CollectionProperty(
-        type=BlendLoopStateProperty)
-    wm.blend_loop_state = BlendLoopState(
-        bpy.context.window_manager.blend_loop_state_property)
+    bpy.types.WindowManager.blend_loop_state = BlendLoopState()
 
 
 def unregister():
     del bpy.types.WindowManager.blend_loop_state
-    del bpy.types.WindowManager.blend_loop_state_property
     bpy.utils.unregister_class(BlendLoopDirectoryLoad)
     bpy.utils.unregister_class(BlendLoopDirectoryClear)
-    bpy.utils.unregister_class(BlendLoopStateProperty)
     bpy.utils.unregister_class(BlendLoopPanel)
     bpy.utils.unregister_class(BlendLoopToggle)
     bpy.utils.unregister_class(BlendLoopMessageSubscriber)
