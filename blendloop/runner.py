@@ -65,6 +65,7 @@ def loop_is_running(state):
 def loop_start(state):
     if loop_is_running():
         raise Exception("Loop is already running!")
+    state.subscriber = bpy.ops.wm.blend_loop_message_subscriber()
     async_task = asyncio.ensure_future(run_loop())
     async_task.add_done_callback(done_callback)
     async_loop.ensure_async_loop()
@@ -78,6 +79,7 @@ def loop_stop(state):
         raise Exception("Not running loop!")
     state.is_running = False
     state.task.cancel()
+    state.subscriber_clear()
 
 
 @state

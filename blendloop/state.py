@@ -43,6 +43,9 @@ class BlendLoopState():
     def subscriber(self, value):
         self.__subscriber = value
 
+    def subscriber_clear():
+        del self.__subscriber
+
     @property
     def task(self):
         return self.__task

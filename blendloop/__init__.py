@@ -79,6 +79,7 @@ class BlendLoopToggle(bpy.types.Operator):
     bl_description = "Toggle Blend Loop to watch for file changes."
 
     def execute(self, context):
+        bpy.ops.wm.blend_loop_message_subscriber()
         if loop_is_running():
             loop_stop()
         else:
@@ -174,8 +175,6 @@ def register():
         type=BlendLoopStateProperty)
     wm.blend_loop_state = BlendLoopState(
         bpy.context.window_manager.blend_loop_state_property)
-    wm.blend_loop_state.subscriber = (
-        bpy.ops.wm.blend_loop_message_subscriber())
 
 
 def unregister():
