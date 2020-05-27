@@ -73,7 +73,6 @@ async def temp_copy(target_path, source_path):
 async def run_script(path):
     name = Path(path).name
     target_path = Path(BL_SCRIPT_FOLDER).joinpath(randomize_name(name))
-    print("TARGET:", target_path)
     async with temp_copy(target_path, path):
         bpy.utils.load_scripts(refresh_scripts=True)
         importlib.import_module(target_path.stem)
