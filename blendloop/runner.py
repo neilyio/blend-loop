@@ -2,7 +2,7 @@ import asyncio
 import bpy
 from functools import wraps
 from blender_cloud import async_loop
-from loop import loop
+from .loop import loop
 
 
 def state(func):

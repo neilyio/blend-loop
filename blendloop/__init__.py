@@ -32,8 +32,8 @@ import sys
 from pathlib import Path
 from bpy_extras.io_utils import ImportHelper
 sys.path.append("c:/Users/neilh/Documents/GitHub/blend-loop")
-from state import BlendLoopState
-from runner import (
+from .state import BlendLoopState
+from .runner import (
     loop_is_running, loop_start, loop_stop,
     error_get, error_clear, info_get, info_clear,
     directory_get, directory_set)
@@ -79,7 +79,6 @@ class BlendLoopToggle(bpy.types.Operator):
     bl_description = "Toggle Blend Loop to watch for file changes."
 
     def execute(self, context):
-        bpy.ops.wm.blend_loop_message_subscriber()
         if loop_is_running():
             loop_stop()
         else:
@@ -182,7 +181,7 @@ def unregister():
     del bpy.types.WindowManager.blend_loop_state_property
     bpy.utils.unregister_class(BlendLoopDirectoryLoad)
     bpy.utils.unregister_class(BlendLoopDirectoryClear)
-    bpy.utils.unregister_class(BlendLoopState)
+    bpy.utils.unregister_class(BlendLoopStateProperty)
     bpy.utils.unregister_class(BlendLoopPanel)
     bpy.utils.unregister_class(BlendLoopToggle)
     bpy.utils.unregister_class(BlendLoopMessageSubscriber)

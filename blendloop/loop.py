@@ -4,7 +4,7 @@ import random
 from pathlib import Path
 import importlib
 from contextlib import asynccontextmanager
-from config import BL_SCRIPT_FOLDER, REDIS_CODE_KEY
+from .config import BL_SCRIPT_FOLDER, REDIS_CODE_KEY
 import asyncio
 import aiofiles
 import aioredis
